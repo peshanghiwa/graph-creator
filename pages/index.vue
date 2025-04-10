@@ -11,6 +11,59 @@ const createLine = (x, y, className) => {
   return line;
 };
 
+const drawPoint = (x, y) => {
+  const point = document.createElement("div");
+  const left =
+    x * (lineCount.value * spacing.value) + container.value.clientWidth / 2 - 5;
+  const top =
+    y * (lineCount.value * spacing.value * -1) +
+    container.value.clientHeight / 2 -
+    5;
+
+  point.className = "point";
+  point.style.left = `${left}px`;
+  point.style.top = `${top}px`;
+  container.value.appendChild(point);
+};
+
+const drawVector = (x1, y1, x2, y2) => {
+  const vector = document.createElement("div");
+  const initialPointPosition = {
+    x: x1 * (lineCount.value * spacing.value) + container.value.clientWidth / 2,
+    y:
+      y1 * (lineCount.value * spacing.value * -1) +
+      container.value.clientHeight / 2,
+  };
+  const terminalPointPosition = {
+    x: x2 * (lineCount.value * spacing.value) + container.value.clientWidth / 2,
+    y:
+      y2 * (lineCount.value * spacing.value * -1) +
+      container.value.clientHeight / 2,
+  };
+
+  const vectorLength = Math.sqrt(
+    Math.pow(terminalPointPosition.x - initialPointPosition.x, 2) +
+      Math.pow(terminalPointPosition.y - initialPointPosition.y, 2)
+  );
+
+  const angle = Math.atan2(
+    terminalPointPosition.y - initialPointPosition.y,
+    terminalPointPosition.x - initialPointPosition.x
+  );
+
+  vector.className = "vector";
+  vector.style.left = `${initialPointPosition.x}px`;
+  vector.style.top = `${initialPointPosition.y}px`;
+  vector.style.width = `${vectorLength}px`;
+  vector.style.transform = `rotate(${angle}rad)`;
+  vector.style.transformOrigin = "0 0";
+  vector.style.backgroundColor = "#0000ff";
+  vector.style.height = "2px";
+  vector.style.borderRadius = "50%";
+
+  container.value.appendChild(vector);
+};
+
 onMounted(() => {
   const containerWidth = container.value.clientWidth;
   const containerHeight = container.value.clientHeight;
@@ -92,6 +145,14 @@ onMounted(() => {
     container.value.appendChild(line);
     count++;
   }
+
+  // Draw points
+  drawPoint(1, 1);
+  drawPoint(-1, 1);
+  drawPoint(5, 2);
+
+  // Draw vectors
+  drawVector(1, 1, 5, 2);
 });
 </script>
 
@@ -145,5 +206,21 @@ onMounted(() => {
 .line-y.count-line,
 .line-y.filler-line {
   width: 1px;
+}
+
+.point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #ff0000;
+  border-radius: 50%;
+}
+
+.vector {
+  position: absolute;
+  background-color: #0000ff;
+  height: 2px;
+  border-radius: 50%;
+  transform-origin: left center;
 }
 </style>
