@@ -1,31 +1,39 @@
 <script setup>
 const container = ref(null);
-const spacing = ref(50);
-const lineCount = ref(2);
+const spacing = ref(20);
+const lineCount = ref(5);
+const numberGap = ref(1);
 
 const onZoom = (action) => {
   if (action === "in") {
-    if (lineCount.value === 1) {
-      return;
+    if (numberGap.value !== 0.5) {
+      numberGap.value /= 2;
     }
-    lineCount.value -= 1;
+    if (spacing.value > 20) {
+      spacing.value -= 10;
+    }
   } else if (action === "out") {
-    if (lineCount.value === 4) {
-      return;
+    numberGap.value *= 2;
+    if (spacing.value < 100) {
+      spacing.value += 10;
     }
-    lineCount.value += 1;
+  }
+
+  if (numberGap.value % 2 === 0) {
+    lineCount.value = 4;
+  } else {
+    lineCount.value = 5;
   }
 };
 
-watch(
-  () => lineCount.value,
-  () => {
-    // Clear the container before creating the graph again
-    container.value.innerHTML = "";
-    // Create the graph again with the new line count
-    init();
-  }
-);
+watch([lineCount, numberGap, spacing], () => {
+  console.log(lineCount.value, numberGap.value);
+
+  // Clear the container before creating the graph again
+  container.value.innerHTML = "";
+  // Create the graph again with the new line count
+  init();
+});
 
 const createGraph = () => {
   const createLine = (x, y, className) => {
@@ -61,7 +69,8 @@ const createGraph = () => {
     if (lineType === "count-line") {
       const text = document.createElement("span");
 
-      text.innerText = (count - lineCount.value) / lineCount.value;
+      text.innerText =
+        ((count - lineCount.value) / lineCount.value) * numberGap.value;
       text.style.position = "absolute";
       text.style.left = container.value.clientWidth / 2 - 15 + "px";
       line.appendChild(text);
@@ -77,7 +86,8 @@ const createGraph = () => {
     const line = createLine(0, i, "line-x " + lineType);
     if (lineType === "count-line" && (count - lineCount.value) / 2 !== 0) {
       const text = document.createElement("span");
-      text.innerText = "- " + (count - lineCount.value) / lineCount.value;
+      text.innerText =
+        "- " + ((count - lineCount.value) / lineCount.value) * numberGap.value;
       text.style.position = "absolute";
       text.style.left = container.value.clientWidth / 2 - 25 + "px";
       line.appendChild(text);
@@ -93,7 +103,8 @@ const createGraph = () => {
     const line = createLine(i, 0, "line-y " + lineType);
     if (lineType === "count-line" && (count - lineCount.value) / 2 !== 0) {
       const text = document.createElement("span");
-      text.innerText = "- " + (count - lineCount.value) / lineCount.value;
+      text.innerText =
+        "- " + ((count - lineCount.value) / lineCount.value) * numberGap.value;
       text.style.position = "absolute";
       text.style.whiteSpace = "nowrap";
       text.style.top = container.value.clientHeight / 2 + 5 + "px";
@@ -110,7 +121,8 @@ const createGraph = () => {
     const line = createLine(i, 0, "line-y " + lineType);
     if (lineType === "count-line" && (count - lineCount.value) / 2 !== 0) {
       const text = document.createElement("span");
-      text.innerText = (count - lineCount.value) / lineCount.value;
+      text.innerText =
+        ((count - lineCount.value) / lineCount.value) * numberGap.value;
       text.style.position = "absolute";
       text.style.top = container.value.clientHeight / 2 + 5 + "px";
       line.appendChild(text);
@@ -123,9 +135,11 @@ const createGraph = () => {
 const drawPoint = (x, y) => {
   const point = document.createElement("div");
   const left =
-    x * (lineCount.value * spacing.value) + container.value.clientWidth / 2 - 5;
+    x * ((lineCount.value * spacing.value) / numberGap.value) +
+    container.value.clientWidth / 2 -
+    5;
   const top =
-    y * (lineCount.value * spacing.value * -1) +
+    y * ((lineCount.value * spacing.value * -1) / numberGap.value) +
     container.value.clientHeight / 2 -
     5;
 
@@ -138,15 +152,19 @@ const drawPoint = (x, y) => {
 const drawVector = (x1, y1, x2, y2) => {
   const vector = document.createElement("div");
   const initialPointPosition = {
-    x: x1 * (lineCount.value * spacing.value) + container.value.clientWidth / 2,
+    x:
+      x1 * ((lineCount.value * spacing.value) / numberGap.value) +
+      container.value.clientWidth / 2,
     y:
-      y1 * (lineCount.value * spacing.value * -1) +
+      y1 * ((lineCount.value * spacing.value * -1) / numberGap.value) +
       container.value.clientHeight / 2,
   };
   const terminalPointPosition = {
-    x: x2 * (lineCount.value * spacing.value) + container.value.clientWidth / 2,
+    x:
+      x2 * ((lineCount.value * spacing.value) / numberGap.value) +
+      container.value.clientWidth / 2,
     y:
-      y2 * (lineCount.value * spacing.value * -1) +
+      y2 * ((lineCount.value * spacing.value * -1) / numberGap.value) +
       container.value.clientHeight / 2,
   };
 
@@ -178,14 +196,14 @@ const init = () => {
   createGraph();
 
   // // Draw points
+  drawPoint(0, 0);
   drawPoint(1, 1);
-  drawPoint(-1, 1);
-  drawPoint(3, 3);
-  drawPoint(-5, -2);
+  // drawPoint(3, 3);
+  // drawPoint(-5, -2);
 
   // // Draw vectors
-  drawVector(1, 1, 3, 3);
-  drawVector(-1, 1, -5, -2);
+  drawVector(0, 0, 1, 1);
+  // drawVector(-1, 1, -5, -2);
 };
 
 onMounted(() => {
@@ -202,13 +220,13 @@ onMounted(() => {
         color="neutral"
         variant="outline"
         icon="i-twemoji:plus"
-        @click="onZoom('out')"
+        @click="onZoom('in')"
       />
       <UButton
         color="neutral"
         variant="outline"
         icon="i-twemoji:minus"
-        @click="onZoom('in')"
+        @click="onZoom('out')"
       />
     </UButtonGroup>
   </div>
